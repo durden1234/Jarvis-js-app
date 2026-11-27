@@ -3,18 +3,575 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>J.A.R.V.I.S. JS App</title>
+  <title>STARK INDUSTRIES // J.A.R.V.I.S. COMMAND HUB</title>
   <style>
-    body { font-family: system-ui, sans-serif; background: #070b14; color: #f8fafc; padding: 24px; }
-    button { padding: 10px 16px; border: 1px solid #f59e0b; background: #991b1b; color: #fff; border-radius: 6px; }
-    #output { margin-top: 16px; padding: 14px; background: #111827; border-radius: 8px; }
+    :root {
+      --bg-void: #04070d;
+      --bg-panel: rgba(9, 15, 27, 0.92);
+      --bg-card: rgba(15, 24, 42, 0.88);
+      --stark-red: #dc2626;
+      --stark-red-glow: rgba(220, 38, 38, 0.45);
+      --stark-gold: #f59e0b;
+      --stark-gold-glow: rgba(245, 158, 11, 0.35);
+      --holo-cyan: #38bdf8;
+      --holo-cyan-glow: rgba(56, 189, 248, 0.3);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border-hud: rgba(56, 189, 248, 0.25);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(220, 38, 38, 0.16), transparent 45%),
+        radial-gradient(circle at 85% 20%, rgba(56, 189, 248, 0.12), transparent 40%),
+        linear-gradient(180deg, #04070d 0%, #070d19 100%);
+      color: var(--text-main);
+      padding: 16px;
+    }
+
+    .hud-shell {
+      max-width: 1280px;
+      margin: 0 auto;
+      background: var(--bg-panel);
+      border: 1px solid var(--stark-gold);
+      box-shadow: 0 0 30px rgba(245, 158, 11, 0.14), inset 0 0 24px rgba(56, 189, 248, 0.06);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    .hud-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 16px 20px;
+      background: linear-gradient(90deg, rgba(127, 29, 29, 0.35), rgba(15, 23, 42, 0.9), rgba(14, 116, 144, 0.2));
+      border-bottom: 1px solid rgba(245, 158, 11, 0.45);
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .arc-reactor {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 2px solid var(--holo-cyan);
+      box-shadow: 0 0 18px var(--holo-cyan), inset 0 0 14px var(--holo-cyan);
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle, #e0f2fe 15%, #0284c7 55%, #082f49 100%);
+      animation: pulseArc 3s infinite ease-in-out;
+      flex-shrink: 0;
+    }
+
+    .arc-core {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow: 0 0 12px #ffffff, 0 0 22px var(--holo-cyan);
+    }
+
+    @keyframes pulseArc {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: var(--stark-gold);
+      text-transform: uppercase;
+    }
+
+    .brand-sub {
+      font-size: 0.78rem;
+      color: var(--holo-cyan);
+      letter-spacing: 0.04em;
+    }
+
+    .status-cluster {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .pill {
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      border: 1px solid var(--border-hud);
+      background: rgba(15, 23, 42, 0.85);
+      color: var(--holo-cyan);
+    }
+
+    .pill.live {
+      border-color: rgba(34, 197, 94, 0.5);
+      color: #4ade80;
+    }
+
+    .btn {
+      cursor: pointer;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      transition: transform 0.12s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-gold {
+      background: linear-gradient(135deg, #b91c1c, #dc2626);
+      color: #fef3c7;
+      border: 1px solid var(--stark-gold);
+      box-shadow: 0 0 14px var(--stark-red-glow);
+    }
+
+    .btn-cyan {
+      background: rgba(14, 116, 144, 0.25);
+      color: var(--holo-cyan);
+      border: 1px solid var(--holo-cyan);
+    }
+
+    .module-nav {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 12px 20px;
+      background: rgba(6, 10, 19, 0.9);
+      border-bottom: 1px solid var(--border-hud);
+      scrollbar-width: thin;
+    }
+
+    .mod-btn {
+      white-space: nowrap;
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      background: rgba(15, 23, 42, 0.75);
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+    }
+
+    .mod-btn.active {
+      color: #fff;
+      border-color: var(--stark-gold);
+      background: linear-gradient(135deg, rgba(185, 28, 28, 0.75), rgba(15, 23, 42, 0.95));
+      box-shadow: 0 0 14px var(--stark-gold-glow);
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: 1.45fr 1fr;
+      gap: 18px;
+      padding: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-hud);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+      font-size: 0.85rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      color: var(--stark-gold);
+      text-transform: uppercase;
+    }
+
+    label {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--holo-cyan);
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+
+    textarea, input[type="text"], input[type="password"], select {
+      width: 100%;
+      background: rgba(4, 7, 13, 0.9);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 8px;
+      color: var(--text-main);
+      padding: 10px 12px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      margin-bottom: 12px;
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    .controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .console-box {
+      margin-top: 14px;
+      background: #03060c;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-radius: 10px;
+      padding: 14px;
+      min-height: 170px;
+      white-space: pre-wrap;
+      line-height: 1.5;
+      font-size: 0.88rem;
+      color: #e2e8f0;
+    }
+
+    .archive-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 360px;
+      overflow-y: auto;
+    }
+
+    .archive-item {
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: rgba(4, 7, 13, 0.75);
+      border-left: 3px solid var(--stark-red);
+      border-top: 1px solid rgba(148, 163, 184, 0.12);
+      border-right: 1px solid rgba(148, 163, 184, 0.12);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+      font-size: 0.82rem;
+    }
+
+    .archive-meta {
+      font-size: 0.7rem;
+      color: var(--stark-gold);
+      margin-bottom: 4px;
+      font-weight: 700;
+    }
+
+    .api-drawer {
+      display: none;
+      padding: 14px 20px;
+      background: rgba(12, 20, 36, 0.98);
+      border-bottom: 1px solid var(--stark-gold);
+    }
+
+    .api-drawer.open {
+      display: block;
+    }
   </style>
 </head>
 <body>
-  <h1>J.A.R.V.I.S. Mobile JS Unit</h1>
-  <input id="cmdInput" placeholder="Enter command..." />
-  <button id="runBtn">Run JS</button>
-  <div id="output">Awaiting input, sir.</div>
-  <script src="app.js"></script>
+  <div class="hud-shell">
+    <header class="hud-header">
+      <div class="brand-group">
+        <div class="arc-reactor" aria-hidden="true">
+          <div class="arc-core"></div>
+        </div>
+        <div>
+          <div class="brand-title">Stark Industries // J.A.R.V.I.S. Command Hub</div>
+          <div class="brand-sub" id="moduleSubtitle">ACTIVE MODULE: MAINFRAME — GENERAL TACTICAL EXECUTION</div>
+        </div>
+      </div>
+      <div class="status-cluster">
+        <span class="pill" id="powerReadout">ARC OUTPUT: 98.4%</span>
+        <span class="pill live" id="aiModeReadout">AI LINK: LOCAL TACTICAL CORE</span>
+        <button class="btn btn-cyan" id="toggleApiBtn" type="button">⚙ API Key</button>
+        <button class="btn btn-gold" id="exportBtn" type="button">⬇ Export HTML</button>
+      </div>
+    </header>
+
+    <section class="api-drawer" id="apiDrawer">
+      <label for="apiKeyInput">Gemini API Key (Stored locally in this browser only — never pushed to GitHub)</label>
+      <div class="controls-row">
+        <input type="password" id="apiKeyInput" placeholder="Paste Gemini API key (AIza...) for live Gemini responses" style="margin-bottom: 0; flex: 1; min-width: 220px;" />
+        <button class="btn btn-gold" id="saveApiBtn" type="button">Save Key</button>
+        <button class="btn btn-cyan" id="clearApiBtn" type="button">Clear</button>
+      </div>
+    </section>
+
+    <nav class="module-nav" id="moduleNav" aria-label="Command Hub Modules">
+      <button class="mod-btn active" data-module="MAINFRAME" data-sub="ACTIVE MODULE: MAINFRAME — GENERAL TACTICAL EXECUTION">1. MAINFRAME</button>
+      <button class="mod-btn" data-module="ARMOR LAB" data-sub="ACTIVE MODULE: ARMOR LAB — CODE, SCRIPTS & ARCHITECTURE">2. ARMOR LAB</button>
+      <button class="mod-btn" data-module="STARK WEB SYSTEMS" data-sub="ACTIVE MODULE: STARK WEB SYSTEMS — UI & WEB APPS">3. STARK WEB SYSTEMS</button>
+      <button class="mod-btn" data-module="HOLOGRAPHIC LAB" data-sub="ACTIVE MODULE: HOLOGRAPHIC LAB — VISUALS & CONCEPTS">4. HOLOGRAPHIC LAB</button>
+      <button class="mod-btn" data-module="INTELLIGENCE" data-sub="ACTIVE MODULE: INTELLIGENCE — RESEARCH & WRITING">5. INTELLIGENCE</button>
+      <button class="mod-btn" data-module="SIMULATION BAY" data-sub="ACTIVE MODULE: SIMULATION BAY — GAMES & SIMULATIONS">6. SIMULATION BAY</button>
+      <button class="mod-btn" data-module="PROJECT ARCHIVE" data-sub="ACTIVE MODULE: PROJECT ARCHIVE — SAVED MISSIONS">7. PROJECT ARCHIVE</button>
+    </nav>
+
+    <main class="workspace">
+      <section class="panel">
+        <div class="panel-title">
+          <span>Mission Control Console</span>
+          <span id="activeTag" style="color: var(--holo-cyan);">MAINFRAME</span>
+        </div>
+
+        <label for="missionInput">Command Directive</label>
+        <textarea id="missionInput" placeholder="Enter your mission for J.A.R.V.I.S., sir..."></textarea>
+
+        <div class="controls-row">
+          <div style="flex: 1; min-width: 140px;">
+            <label for="prioritySelect">Mission Priority</label>
+            <select id="prioritySelect" style="margin-bottom: 0;">
+              <option value="STANDARD">STANDARD</option>
+              <option value="HIGH">HIGH</option>
+              <option value="CRITICAL // MARK V">CRITICAL // MARK V</option>
+            </select>
+          </div>
+          <div style="flex: 1; min-width: 140px;">
+            <label for="powerRange">Arc Reactor Output</label>
+            <input type="text" id="powerRange" value="98.4%" style="margin-bottom: 0;" />
+          </div>
+        </div>
+
+        <div class="controls-row" style="margin-top: 14px;">
+          <button class="btn btn-gold" id="executeBtn" type="button">⚡ EXECUTE MISSION</button>
+          <button class="btn btn-cyan" id="clearConsoleBtn" type="button">Clear Output</button>
+        </div>
+
+        <div class="console-box" id="outputConsole">J.A.R.V.I.S.: All seven Stark Industries systems are online and calibrated, sir. Select a module, enter a directive, and press EXECUTE MISSION.</div>
+      </section>
+
+      <aside class="panel">
+        <div class="panel-title">
+          <span>Project Archive & Telemetry</span>
+          <button class="btn btn-cyan" id="clearArchiveBtn" type="button" style="padding: 4px 10px; font-size: 0.72rem;">Reset Log</button>
+        </div>
+        <div class="archive-list" id="archiveList"></div>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    const STORAGE_KEY_ARCHIVE = "stark_jarvis_archive_v1";
+    const STORAGE_KEY_API = "stark_jarvis_gemini_key_v1";
+
+    let activeModule = "MAINFRAME";
+
+    const moduleNav = document.getElementById("moduleNav");
+    const moduleSubtitle = document.getElementById("moduleSubtitle");
+    const activeTag = document.getElementById("activeTag");
+    const missionInput = document.getElementById("missionInput");
+    const prioritySelect = document.getElementById("prioritySelect");
+    const powerRange = document.getElementById("powerRange");
+    const powerReadout = document.getElementById("powerReadout");
+    const executeBtn = document.getElementById("executeBtn");
+    const clearConsoleBtn = document.getElementById("clearConsoleBtn");
+    const outputConsole = document.getElementById("outputConsole");
+    const archiveList = document.getElementById("archiveList");
+    const clearArchiveBtn = document.getElementById("clearArchiveBtn");
+    const exportBtn = document.getElementById("exportBtn");
+    const toggleApiBtn = document.getElementById("toggleApiBtn");
+    const apiDrawer = document.getElementById("apiDrawer");
+    const apiKeyInput = document.getElementById("apiKeyInput");
+    const saveApiBtn = document.getElementById("saveApiBtn");
+    const clearApiBtn = document.getElementById("clearApiBtn");
+    const aiModeReadout = document.getElementById("aiModeReadout");
+
+    function syncApiState() {
+      const key = localStorage.getItem(STORAGE_KEY_API) || "";
+      apiKeyInput.value = key;
+      if (key.trim()) {
+        aiModeReadout.textContent = "AI LINK: GEMINI LIVE READY";
+        aiModeReadout.className = "pill live";
+      } else {
+        aiModeReadout.textContent = "AI LINK: LOCAL TACTICAL CORE";
+        aiModeReadout.className = "pill";
+      }
+    }
+
+    function getArchive() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY_ARCHIVE) || "[]");
+      } catch {
+        return [];
+      }
+    }
+
+    function saveArchiveItem(entry) {
+      const items = getArchive();
+      items.unshift(entry);
+      localStorage.setItem(STORAGE_KEY_ARCHIVE, JSON.stringify(items.slice(0, 30)));
+      renderArchive();
+    }
+
+    function renderArchive() {
+      const items = getArchive();
+      if (!items.length) {
+        archiveList.innerHTML = `<div class="archive-item"><div class="archive-meta">STANDBY</div>No logged missions yet, sir. Execute a directive to record it in the archive.</div>`;
+        return;
+      }
+      archiveList.innerHTML = items.map(item => `
+        <div class="archive-item">
+          <div class="archive-meta">[${item.module}] · ${item.priority} · ${item.time}</div>
+          <div><strong>Directive:</strong> ${escapeHtml(item.prompt)}</div>
+        </div>
+      `).join("");
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    moduleNav.addEventListener("click", (e) => {
+      const btn = e.target.closest(".mod-btn");
+      if (!btn) return;
+      document.querySelectorAll(".mod-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      activeModule = btn.dataset.module;
+      moduleSubtitle.textContent = btn.dataset.sub;
+      activeTag.textContent = activeModule;
+    });
+
+    powerRange.addEventListener("input", () => {
+      powerReadout.textContent = `ARC OUTPUT: ${powerRange.value || "98.4%"}`;
+    });
+
+    toggleApiBtn.addEventListener("click", () => {
+      apiDrawer.classList.toggle("open");
+    });
+
+    saveApiBtn.addEventListener("click", () => {
+      localStorage.setItem(STORAGE_KEY_API, apiKeyInput.value.trim());
+      syncApiState();
+      outputConsole.textContent = "J.A.R.V.I.S.: Gemini API key saved locally in browser storage, sir.";
+    });
+
+    clearApiBtn.addEventListener("click", () => {
+      localStorage.removeItem(STORAGE_KEY_API);
+      syncApiState();
+      outputConsole.textContent = "J.A.R.V.I.S.: Gemini API key cleared. Operating on local tactical core, sir.";
+    });
+
+    async function callGeminiIfConfigured(prompt, moduleName, priority) {
+      const apiKey = (localStorage.getItem(STORAGE_KEY_API) || "").trim();
+      if (!apiKey) return null;
+
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
+      const systemInstruction = `You are J.A.R.V.I.S. from Iron Man, acting inside the ${moduleName} module of the Stark Industries Command Hub. Priority level: ${priority}. Always address the user as sir, start with "J.A.R.V.I.S.:", and give direct, practical, high-precision output.`;
+
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: systemInstruction }] },
+          contents: [{ parts: [{ text: prompt }] }]
+        })
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`HTTP ${res.status}: ${errText.slice(0, 180)}`);
+      }
+
+      const data = await res.json();
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      return text ? text.trim() : null;
+    }
+
+    executeBtn.addEventListener("click", async () => {
+      const prompt = missionInput.value.trim();
+      const priority = prioritySelect.value;
+      const power = powerRange.value.trim() || "98.4%";
+      powerReadout.textContent = `ARC OUTPUT: ${power}`;
+
+      if (!prompt) {
+        outputConsole.textContent = "J.A.R.V.I.S.: Please enter a command directive before executing a mission, sir.";
+        return;
+      }
+
+      outputConsole.textContent = `J.A.R.V.I.S.: Routing [${priority}] directive through ${activeModule} at ${power} Arc output, sir...`;
+
+      const timestamp = new Date().toLocaleTimeString();
+      saveArchiveItem({ module: activeModule, priority, prompt, time: timestamp });
+
+      try {
+        const liveReply = await callGeminiIfConfigured(prompt, activeModule, priority);
+        if (liveReply) {
+          outputConsole.textContent = liveReply.startsWith("J.A.R.V.I.S.:")
+            ? liveReply
+            : `J.A.R.V.I.S.: ${liveReply}`;
+          return;
+        }
+      } catch (err) {
+        outputConsole.textContent = `J.A.R.V.I.S.: Live Gemini link reported an error (${err.message}). Falling back to local ${activeModule} response, sir:\n\n[${activeModule} // ${priority}] Directive logged: "${prompt}" — Arc Reactor steady at ${power}.`;
+        return;
+      }
+
+      outputConsole.textContent =
+`J.A.R.V.I.S.: [${activeModule}] mission executed at [${priority}] priority with Arc Reactor output at ${power}, sir.
+
+Directive: "${prompt}"
+Status: Logged to Project Archive at ${timestamp}. Add a Gemini API key under "⚙ API Key" whenever you want live cloud AI responses on your hosted site.`;
+    });
+
+    clearConsoleBtn.addEventListener("click", () => {
+      outputConsole.textContent = "J.A.R.V.I.S.: Console cleared and standing by, sir.";
+    });
+
+    clearArchiveBtn.addEventListener("click", () => {
+      localStorage.removeItem(STORAGE_KEY_ARCHIVE);
+      renderArchive();
+    });
+
+    exportBtn.addEventListener("click", () => {
+      const htmlContent = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+      const blob = new Blob([htmlContent], { type: "text/html;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "index.html";
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    syncApiState();
+    renderArchive();
+  </script>
 </body>
 </html>
